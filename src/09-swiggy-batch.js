@@ -89,24 +89,83 @@
  */
 export function prepareOrder(item, prepTime) {
   // Your code here
+  return new Promise((res, rej) => {
+    if (!item) rej(new Error("Item name required!"));
+    if (typeof prepTime !== "number" || prepTime <= 0)
+      rej(new Error("Invalid prep time!"));
+    setTimeout(() => {
+      res({ item, ready: true, prepTime });
+    }, prepTime);
+  });
 }
 
 export function prepareBatch(items) {
   // Your code here
+  if (!Array.isArray(items) || items.length === 0) return Promise.resolve([]);
+
+  const prepareOrderPromises = items.map(({ name, prepTime }) =>
+    prepareOrder(name, prepTime),
+  );
+
+  return Promise.all(prepareOrderPromises);
 }
 
 export function getFirstReady(items) {
   // Your code here
+  if (!Array.isArray(items) || items.length === 0)
+    return Promise.reject(new Error("No items to prepare!"));
+
+  const promises = items.map(({ name, prepTime }) =>
+    prepareOrder(name, prepTime),
+  );
+  return Promise.race(promises);
 }
 
 export function prepareSafeBatch(items) {
   // Your code here
+  if (!Array.isArray(items) || items.length === 0) return Promise.resolve([]);
+
+  return Promise.allSettled(
+    items.map(({ name, prepTime }) => prepareOrder(name, prepTime)),
+  ).then((results) => {
+    return results.map((result) =>
+      result.status === "fulfilled"
+        ? { status: result.status, value: result.value }
+        : { status: result.status, reason: result.reason.message },
+    );
+  });
 }
 
 export function deliverWithTimeout(orderPromise, timeoutMs) {
   // Your code here
+  if (timeoutMs <= 0) return Promise.reject(new Error("Invalid timeout!"));
+
+  return Promise.race([
+    orderPromise,
+    new Promise((_, rej) => {
+      setTimeout(() => {
+        rej(new Error("Delivery timeout!"));
+      }, timeoutMs);
+    }),
+  ]);
 }
 
 export function batchWithRetry(items, maxRetries) {
   // Your code here
+  if (maxRetries < 0) {
+    throw new Error("maxRetries must be >= 0");
+  }
+
+  let lastError;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const result = prepareBatch(items);
+      return result;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError;
 }

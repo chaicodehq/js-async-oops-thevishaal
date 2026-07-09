@@ -130,79 +130,199 @@
 export class Player {
   constructor(name, age, team) {
     // Your code here
+    this.name = name;
+    this.age = age;
+    this.team = team;
+    this.trainingHours = 0;
   }
 
   getProfile() {
     // Your code here
+    const { name, age, team, trainingHours } = this;
+    return { name, age, team, role: "player", trainingHours };
   }
 
   train(hours) {
     // Your code here
+    if (hours <= 0) return -1;
+    this.trainingHours += hours;
+    return this.trainingHours;
   }
 
   getTrainingHours() {
     // Your code here
+    return this.trainingHours;
   }
 }
 
 export class Batsman extends Player {
   constructor(name, age, team, battingStyle) {
     // Your code here
+    constructor(name, age, team, battingStyle);
+    super(name, age, team);
+    this.battingStyle = battingStyle;
+    this.innings = [];
   }
 
   playInnings(runs, balls) {
     // Your code here
+    let strikeRate;
+    if (
+      runs >= 0 &&
+      balls > 0 &&
+      Number.isInteger(runs) &&
+      Number.isInteger(balls)
+    ) {
+      strikeRate = (runs / balls) * 100;
+    } else {
+      return null;
+    }
+
+    const inning = { runs, balls, strikeRate };
+    this.innings.push(inning);
+    return inning;
   }
 
   getStrikeRate() {
     // Your code here
+    const totalPlayedInnigs = this.innings.length;
+    if (totalPlayedInnigs === 0) return 0;
+    const totalStrikeRate = this.innings.reduce(
+      (t, { strikeRate }) => t + strikeRate,
+      0,
+    );
+    return totalStrikeRate / totalPlayedInnigs;
   }
 
   getProfile() {
     // Your code here
+    const totalRuns = this.innings.reduce((t, { runs }) => t + runs, 0);
+    return {
+      ...super.getProfile(),
+      battingStyle: this.battingStyle,
+      role: "batsman",
+      totalRuns,
+      inningsPlayed: this.innings.length,
+    };
   }
 }
 
 export class Bowler extends Player {
   constructor(name, age, team, bowlingStyle) {
     // Your code here
+    super(name, age, team);
+    this.bowlingStyle = bowlingStyle;
+    this.spells = [];
   }
 
   bowlSpell(wickets, runsConceded, overs) {
     // Your code here
+    let economy;
+    if (wickets >= 0 && runsConceded >= 0 && overs > 0) {
+      economy = runsConceded / overs;
+      const spell = { wickets, runsConceded, overs, economy };
+      this.spells.push(spell);
+      return spell;
+    } else {
+      return null;
+    }
   }
 
   getEconomy() {
     // Your code here
+    const totalSpells = this.spells.length;
+    if (totalSpells === 0) return 0;
+    const totalEconomy = this.spells.reduce((t, { economy }) => t + economy, 0);
+    return totalEconomy / totalSpells;
   }
 
   getProfile() {
     // Your code here
+    const totalWickets = this.spells.reduce((t, { wickets }) => t + wickets, 0);
+
+    return {
+      ...super.getProfile(),
+      bowlingStyle: this.bowlingStyle,
+      role: "bowler",
+      totalWickets,
+      spellsBowled: this.spells.length,
+    };
   }
 }
 
 export class AllRounder extends Player {
   constructor(name, age, team, battingStyle, bowlingStyle) {
     // Your code here
+    super(name, age, team);
+    this.battingStyle = battingStyle;
+    this.bowlingStyle = bowlingStyle;
+    this.innings = [];
+    this.spells = [];
   }
 
   playInnings(runs, balls) {
     // Your code here
+    let strikeRate;
+    if (
+      runs >= 0 &&
+      balls > 0 &&
+      Number.isInteger(runs) &&
+      Number.isInteger(balls)
+    ) {
+      strikeRate = (runs / balls) * 100;
+    } else {
+      return null;
+    }
+
+    const inning = { runs, balls, strikeRate };
+    this.innings.push(inning);
+    return inning;
   }
 
   bowlSpell(wickets, runsConceded, overs) {
     // Your code here
+    let economy;
+    let spell;
+    if (wickets >= 0 && runsConceded >= 0 && overs > 0) {
+      economy = runsConceded / overs;
+      spell = { wickets, runsConceded, overs, economy };
+      this.spells.push(spell);
+      return spell;
+    } else {
+      return null;
+    }
   }
 
   getStrikeRate() {
     // Your code here
+    const totalPlayedInnigs = this.innings.length;
+    if (totalPlayedInnigs === 0) return 0;
+    const totalStrikeRate = this.innings.reduce(
+      (t, { strikeRate }) => t + strikeRate,
+      0,
+    );
+    return totalStrikeRate / totalPlayedInnigs;
   }
 
   getEconomy() {
     // Your code here
+    const totalSpells = this.spells.length;
+    if (totalSpells === 0) return 0;
+    const totalEconomy = this.spells.reduce((t, { economy }) => t + economy, 0);
+    return totalEconomy / totalSpells;
   }
 
   getProfile() {
     // Your code here
+    return {
+      ...super.getProfile(),
+      battingStyle: this.battingStyle,
+      bowlingStyle: this.bowlingStyle,
+      role: "allrounder",
+      totalRuns: this.innings.reduce((t, { runs }) => t + runs, 0),
+      totalWickets: this.spells.reduce((t, { wickets }) => t + wickets, 0),
+      inningsPlayed: this.innings.length,
+      spellsBowled: this.spells.length,
+    };
   }
 }
